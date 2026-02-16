@@ -47,3 +47,43 @@
     ),
   }
 )
+
+(define-map agreement-payment-escrow
+  { agreement-identifier: uint }
+  { escrowed-amount: uint }
+)
+
+(define-map agreement-disputes
+  { agreement-identifier: uint }
+  {
+    dispute-reason: (string-utf8 200),
+    dispute-initiator: principal,
+    dispute-resolution: (optional (string-utf8 200)),
+  }
+)
+
+;; Read-only functions
+(define-read-only (get-agreement-details (agreement-identifier uint))
+  (map-get? service-agreement-details { agreement-identifier: agreement-identifier })
+)
+
+(define-read-only (get-escrowed-payment (agreement-identifier uint))
+  (default-to { escrowed-amount: u0 }
+    (map-get? agreement-payment-escrow { agreement-identifier: agreement-identifier })
+  )
+)
+
+(define-read-only (get-dispute-details (agreement-identifier uint))
+  (map-get? agreement-disputes { agreement-identifier: agreement-identifier })
+)
+
+;; Private functions
+(define-private (verify-participant-authorization (agreement-identifier uint))
+  (let ((agreement-info (unwrap! (get-agreement-details agreement-identifier) false)))
+    (or
+      (is-eq tx-sender contract-administrator)
+      (is-eq tx-sender (get service-provider-address agreement-info))
+      (is-eq tx-sender (get client-address agreement-info))
+    )
+  )
+)
