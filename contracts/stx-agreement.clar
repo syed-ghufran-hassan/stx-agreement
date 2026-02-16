@@ -156,3 +156,40 @@
     )
   )
 )
+
+(define-private (update-milestone-at-index
+    (milestone {
+      milestone-description: (string-utf8 100),
+      milestone-payment: uint,
+      milestone-completed: bool,
+    })
+    (target-index uint)
+    (index uint)
+  )
+  {
+    milestone-description: (get milestone-description milestone),
+    milestone-payment: (get milestone-payment milestone),
+    milestone-completed: (if (is-eq index target-index)
+      true
+      (get milestone-completed milestone)
+    ),
+  }
+)
+
+(define-public (mark-milestone-complete
+    (agreement-identifier uint)
+    (milestone-index uint)
+  )
+  (let ((agreement-info (unwrap! (get-agreement-details agreement-identifier)
+      ERROR_AGREEMENT_NOT_FOUND
+    )))
+    (asserts! (is-eq tx-sender (get service-provider-address agreement-info))
+      ERROR_UNAUTHORIZED_ACCESS
+    )
+    (asserts!
+      (is-eq (get agreement-status agreement-info) agreement-status-active)
+      ERROR_INVALID_AGREEMENT_STATUS
+    )
+    (asserts! (< milestone-index (len (get service-milestones agreement-info)))
+      ERROR_INVALID_MILESTONE_INDEX
+    )
