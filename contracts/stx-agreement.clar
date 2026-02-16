@@ -87,3 +87,28 @@
     )
   )
 )
+
+(define-private (milestone-completed? (milestone {
+  milestone-description: (string-utf8 100),
+  milestone-payment: uint,
+  milestone-completed: bool,
+}))
+  (get milestone-completed milestone)
+)
+
+(define-private (verify-all-milestones-complete (service-milestones (list
+  5
+  {
+    milestone-description: (string-utf8 100),
+    milestone-payment: uint,
+    milestone-completed: bool,
+  }
+)))
+  (and
+    (milestone-completed? (unwrap-panic (element-at service-milestones u0)))
+    (milestone-completed? (unwrap-panic (element-at service-milestones u1)))
+    (milestone-completed? (unwrap-panic (element-at service-milestones u2)))
+    (milestone-completed? (unwrap-panic (element-at service-milestones u3)))
+    (milestone-completed? (unwrap-panic (element-at service-milestones u4)))
+  )
+)
