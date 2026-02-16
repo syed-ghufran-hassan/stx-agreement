@@ -232,3 +232,33 @@
     )
   )
 )
+
+(define-public (initiate-dispute
+    (agreement-identifier uint)
+    (dispute-reason (string-utf8 200))
+  )
+  (let ((agreement-info (unwrap! (get-agreement-details agreement-identifier)
+      ERROR_AGREEMENT_NOT_FOUND
+    )))
+    (asserts! (verify-participant-authorization agreement-identifier)
+      ERROR_UNAUTHORIZED_ACCESS
+    )
+    (asserts!
+      (< stacks-block-height (get dispute-filing-deadline-block agreement-info))
+      ERROR_INVALID_AGREEMENT_STATUS
+    )
+    (asserts! (> (len dispute-reason) u0) ERROR_INVALID_INPUT)
+
+    (map-set agreement-disputes { agreement-identifier: agreement-identifier } {
+      dispute-reason: dispute-reason,
+      dispute-initiator: tx-sender,
+      dispute-resolution: none,
+    })
+
+    (map-set service-agreement-details { agreement-identifier: agreement-identifier }
+      (merge agreement-info { agreement-status: agreement-status-under-dispute })
+    )
+
+    (ok true)
+  )
+)
