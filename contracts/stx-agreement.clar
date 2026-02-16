@@ -193,3 +193,42 @@
     (asserts! (< milestone-index (len (get service-milestones agreement-info)))
       ERROR_INVALID_MILESTONE_INDEX
     )
+
+    (let (
+        (milestones (get service-milestones agreement-info))
+        (updated-service-milestones (list
+          (update-milestone-at-index (unwrap-panic (element-at milestones u0))
+            milestone-index u0
+          )
+          (update-milestone-at-index (unwrap-panic (element-at milestones u1))
+            milestone-index u1
+          )
+          (update-milestone-at-index (unwrap-panic (element-at milestones u2))
+            milestone-index u2
+          )
+          (update-milestone-at-index (unwrap-panic (element-at milestones u3))
+            milestone-index u3
+          )
+          (update-milestone-at-index (unwrap-panic (element-at milestones u4))
+            milestone-index u4
+          )
+        ))
+      )
+      (map-set service-agreement-details { agreement-identifier: agreement-identifier }
+        (merge agreement-info { service-milestones: updated-service-milestones })
+      )
+
+      (if (verify-all-milestones-complete updated-service-milestones)
+        (map-set service-agreement-details { agreement-identifier: agreement-identifier }
+          (merge agreement-info {
+            agreement-status: agreement-status-delivered,
+            service-milestones: updated-service-milestones,
+          })
+        )
+        true
+      )
+
+      (ok true)
+    )
+  )
+)
