@@ -112,3 +112,47 @@
     (milestone-completed? (unwrap-panic (element-at service-milestones u4)))
   )
 )
+
+(define-private (validate-milestone-payments
+    (milestones (list
+      5
+      {
+        milestone-description: (string-utf8 100),
+        milestone-payment: uint,
+        milestone-completed: bool,
+      }
+    ))
+    (total-cost uint)
+  )
+  (let ((total-milestone-payments (+ (get milestone-payment (unwrap-panic (element-at milestones u0)))
+      (get milestone-payment (unwrap-panic (element-at milestones u1)))
+      (get milestone-payment (unwrap-panic (element-at milestones u2)))
+      (get milestone-payment (unwrap-panic (element-at milestones u3)))
+      (get milestone-payment (unwrap-panic (element-at milestones u4)))
+    )))
+    (and
+      (is-eq total-milestone-payments total-cost) ;; Sum of milestone payments must equal total cost
+      (>
+        (len (get milestone-description (unwrap-panic (element-at milestones u0))))
+        u0
+      )
+      ;; Validate descriptions
+      (>
+        (len (get milestone-description (unwrap-panic (element-at milestones u1))))
+        u0
+      )
+      (>
+        (len (get milestone-description (unwrap-panic (element-at milestones u2))))
+        u0
+      )
+      (>
+        (len (get milestone-description (unwrap-panic (element-at milestones u3))))
+        u0
+      )
+      (>
+        (len (get milestone-description (unwrap-panic (element-at milestones u4))))
+        u0
+      )
+    )
+  )
+)
