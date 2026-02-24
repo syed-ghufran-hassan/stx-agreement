@@ -62,7 +62,7 @@
   }
 )
 
-;; Read-only functions
+;; --- Read-only functions ---
 (define-read-only (get-agreement-details (agreement-identifier uint))
   (map-get? service-agreement-details { agreement-identifier: agreement-identifier })
 )
@@ -77,7 +77,7 @@
   (map-get? agreement-disputes { agreement-identifier: agreement-identifier })
 )
 
-;; Private functions
+;; --- Private functions ---
 (define-private (verify-participant-authorization (agreement-identifier uint))
   (let ((agreement-info (unwrap! (get-agreement-details agreement-identifier) false)))
     (or
@@ -130,30 +130,7 @@
       (get milestone-payment (unwrap-panic (element-at milestones u3)))
       (get milestone-payment (unwrap-panic (element-at milestones u4)))
     )))
-    (and
-      (is-eq total-milestone-payments total-cost) ;; Sum of milestone payments must equal total cost
-      (>
-        (len (get milestone-description (unwrap-panic (element-at milestones u0))))
-        u0
-      )
-      ;; Validate descriptions
-      (>
-        (len (get milestone-description (unwrap-panic (element-at milestones u1))))
-        u0
-      )
-      (>
-        (len (get milestone-description (unwrap-panic (element-at milestones u2))))
-        u0
-      )
-      (>
-        (len (get milestone-description (unwrap-panic (element-at milestones u3))))
-        u0
-      )
-      (>
-        (len (get milestone-description (unwrap-panic (element-at milestones u4))))
-        u0
-      )
-    )
+    (is-eq total-milestone-payments total-cost)
   )
 )
 
@@ -176,6 +153,7 @@
   }
 )
 
+;; --- Public functions ---
 (define-public (mark-milestone-complete
     (agreement-identifier uint)
     (milestone-index uint)
@@ -193,6 +171,11 @@
     (asserts! (< milestone-index (len (get service-milestones agreement-info)))
       ERROR_INVALID_MILESTONE_INDEX
     )
+
+    ;; --- ENHANCEMENT: Validate milestone payments before marking complete ---
+    (asserts! (validate-milestone-payments (get service-milestones agreement-info)
+               (get total-service-cost agreement-info))
+               ERROR_INVALID_MILESTONE_DATA)
 
     (let (
         (milestones (get service-milestones agreement-info))
